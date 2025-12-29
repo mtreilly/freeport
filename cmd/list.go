@@ -19,6 +19,30 @@ var listCmd = &cobra.Command{
 			return err
 		}
 
+		if listPort > 0 {
+			filtered := listeners[:0]
+			for _, l := range listeners {
+				if l.Port == listPort {
+					filtered = append(filtered, l)
+				}
+			}
+			listeners = filtered
+		}
+
+		if listUnique {
+			seen := make(map[string]bool)
+			filtered := listeners[:0]
+			for _, l := range listeners {
+				key := fmt.Sprintf("%d:%d", l.Port, l.PID)
+				if seen[key] {
+					continue
+				}
+				seen[key] = true
+				filtered = append(filtered, l)
+			}
+			listeners = filtered
+		}
+
 		sort.Slice(listeners, func(i, j int) bool {
 			if listeners[i].Port != listeners[j].Port {
 				return listeners[i].Port < listeners[j].Port
@@ -36,4 +60,14 @@ var listCmd = &cobra.Command{
 		}
 		return nil
 	},
+}
+
+var (
+	listPort   int
+	listUnique bool
+)
+
+func init() {
+	listCmd.Flags().IntVar(&listPort, "port", 0, "Filter by port")
+	listCmd.Flags().BoolVar(&listUnique, "unique", false, "Deduplicate by port+PID")
 }
