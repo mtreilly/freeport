@@ -33,6 +33,8 @@ var whoCmd = &cobra.Command{
 			}
 		}
 
+		scan.EnrichListenersWithProcessInfo(context.Background(), matches)
+
 		if jsonOutput {
 			return scan.WriteJSON(os.Stdout, matches)
 		}
@@ -43,7 +45,29 @@ var whoCmd = &cobra.Command{
 		}
 
 		for _, m := range matches {
-			fmt.Fprintf(ui.Stdout(), "port %d: pid=%d user=%s cmd=%s addr=%s\n", port, m.PID, m.User, m.Command, m.Address)
+			line := fmt.Sprintf("port %d: pid=%d", port, m.PID)
+			if m.PPID > 0 {
+				line += fmt.Sprintf(" ppid=%d", m.PPID)
+			}
+			if m.User != "" {
+				line += fmt.Sprintf(" user=%s", m.User)
+			}
+			if m.Command != "" {
+				line += fmt.Sprintf(" cmd=%s", m.Command)
+			}
+			if m.Address != "" {
+				line += fmt.Sprintf(" addr=%s", m.Address)
+			}
+			fmt.Fprintf(ui.Stdout(), "%s\n", line)
+			if m.CommandLine != "" {
+				fmt.Fprintf(ui.Stdout(), "  args=%q\n", m.CommandLine)
+			}
+			if m.Executable != "" {
+				fmt.Fprintf(ui.Stdout(), "  exe=%q\n", m.Executable)
+			}
+			if m.CWD != "" {
+				fmt.Fprintf(ui.Stdout(), "  cwd=%q\n", m.CWD)
+			}
 		}
 		return nil
 	},
