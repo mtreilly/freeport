@@ -57,7 +57,9 @@ var listCmd = &cobra.Command{
 
 		fmt.Fprintf(ui.Stdout(), "%s\n", ui.Header(ui.Stdout(), "PORT\tPID\tUSER\tCOMMAND\tADDR"))
 		for _, l := range listeners {
-			fmt.Fprintf(ui.Stdout(), "%d\t%d\t%s\t%s\t%s\n", l.Port, l.PID, l.User, l.Command, l.Address)
+			port := ui.Emphasis(ui.Stdout(), fmt.Sprintf("%d", l.Port))
+			command := ui.Emphasis(ui.Stdout(), l.Command)
+			fmt.Fprintf(ui.Stdout(), "%s\t%d\t%s\t%s\t%s\n", port, l.PID, l.User, command, l.Address)
 		}
 		return nil
 	},
