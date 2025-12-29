@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"freeport/internal/scan"
+	"freeport/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -20,19 +21,21 @@ var checkCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		port, err := strconv.Atoi(args[0])
 		if err != nil || port < 1 || port > 65535 {
-			fmt.Fprintf(os.Stderr, "invalid port: %q\n", args[0])
+			fmt.Fprintf(ui.Stderr(), "%s invalid port: %q\n", ui.LabelErr(ui.Stderr()), args[0])
 			os.Exit(2)
 		}
 
 		inUse, err := waitForPortFree(port, checkWait)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "check failed: %v\n", err)
+			fmt.Fprintf(ui.Stderr(), "%s check failed: %v\n", ui.LabelErr(ui.Stderr()), err)
 			os.Exit(2)
 		}
 
 		status := "free"
+		statusStyled := ui.Success(ui.Stdout(), status)
 		if inUse {
 			status = "in-use"
+			statusStyled = ui.Warning(ui.Stdout(), status)
 		}
 
 		if jsonOutput {
@@ -42,7 +45,7 @@ var checkCmd = &cobra.Command{
 				"in_use": inUse,
 			})
 		} else {
-			fmt.Fprintf(os.Stdout, "port %d: %s\n", port, status)
+			fmt.Fprintf(ui.Stdout(), "port %d: %s\n", port, statusStyled)
 		}
 
 		if inUse {

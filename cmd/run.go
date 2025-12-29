@@ -7,6 +7,7 @@ import (
 
 	"freeport/internal/lock"
 	"freeport/internal/ports"
+	"freeport/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +43,7 @@ var runCmd = &cobra.Command{
 		}
 		defer lockHandle.Close()
 
-		fmt.Fprintf(os.Stderr, "freeport: using port %d\n", selectedPort)
+		fmt.Fprintf(ui.Stderr(), "%s using port %d\n", ui.Brand(ui.Stderr(), "freeport:"), selectedPort)
 
 		child := exec.Command(commandArgs[0], commandArgs[1:]...)
 		child.Stdin = os.Stdin

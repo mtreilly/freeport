@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"freeport/internal/scan"
+	"freeport/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -57,16 +58,16 @@ var killCmd = &cobra.Command{
 		}
 
 		if len(targets) == 0 {
-		if jsonOutput || killJSON {
-			return scan.WriteJSON(os.Stdout, map[string]any{
-				"port":     port,
-				"status":   "idle",
-				"signaled": 0,
-			})
+			if jsonOutput || killJSON {
+				return scan.WriteJSON(os.Stdout, map[string]any{
+					"port":     port,
+					"status":   "idle",
+					"signaled": 0,
+				})
+			}
+			fmt.Fprintf(ui.Stdout(), "%s port %d: nothing to kill\n", ui.LabelWarn(ui.Stdout()), port)
+			return nil
 		}
-		fmt.Fprintf(os.Stdout, "port %d: nothing to kill\n", port)
-		return nil
-	}
 
 		current, _ := user.Current()
 		for _, t := range targets {
@@ -78,20 +79,20 @@ var killCmd = &cobra.Command{
 		if killDryRun {
 			if jsonOutput || killJSON {
 				return scan.WriteJSON(os.Stdout, map[string]any{
-					"port":   port,
-					"status": "dry-run",
+					"port":    port,
+					"status":  "dry-run",
 					"targets": targets,
 				})
 			}
 			for _, t := range targets {
-				fmt.Fprintf(os.Stdout, "would signal pid %d (%s)\n", t.PID, t.Command)
+				fmt.Fprintf(ui.Stdout(), "%s would signal pid %d (%s)\n", ui.LabelInfo(ui.Stdout()), t.PID, t.Command)
 			}
 			return nil
 		}
 
 		signaled := 0
 		for _, t := range targets {
-			fmt.Fprintf(os.Stdout, "sending %s to pid %d (%s)\n", sig.String(), t.PID, t.Command)
+			fmt.Fprintf(ui.Stdout(), "%s sending %s to pid %d (%s)\n", ui.LabelInfo(ui.Stdout()), sig.String(), t.PID, t.Command)
 			if err := syscall.Kill(t.PID, sig); err != nil {
 				if errors.Is(err, syscall.ESRCH) {
 					continue
@@ -122,7 +123,7 @@ var killCmd = &cobra.Command{
 				}
 			}
 
-			fmt.Fprintf(os.Stdout, "port %d still busy after %s; sending SIGKILL\n", port, killTimeout)
+			fmt.Fprintf(ui.Stdout(), "%s port %d still busy after %s; sending SIGKILL\n", ui.LabelWarn(ui.Stdout()), port, killTimeout)
 			for _, t := range targets {
 				_ = syscall.Kill(t.PID, syscall.SIGKILL)
 			}
