@@ -10,12 +10,16 @@ import (
 )
 
 type Listener struct {
-	Port    int    `json:"port"`
-	PID     int    `json:"pid"`
-	User    string `json:"user,omitempty"`
-	Command string `json:"command,omitempty"`
-	Proto   string `json:"proto,omitempty"`
-	Address string `json:"address,omitempty"`
+	Port        int    `json:"port"`
+	PID         int    `json:"pid"`
+	PPID        int    `json:"ppid,omitempty"`
+	User        string `json:"user,omitempty"`
+	Command     string `json:"command,omitempty"`
+	CommandLine string `json:"command_line,omitempty"`
+	Executable  string `json:"executable,omitempty"`
+	CWD         string `json:"cwd,omitempty"`
+	Proto       string `json:"proto,omitempty"`
+	Address     string `json:"address,omitempty"`
 }
 
 func ListTCPListeners(ctx context.Context) ([]Listener, error) {
@@ -49,4 +53,3 @@ func WriteJSON(w io.Writer, v any) error {
 	}
 	return nil
 }
-
