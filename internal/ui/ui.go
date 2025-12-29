@@ -59,6 +59,10 @@ func Info(out *termenv.Output, text string) string {
 	return style(out, text, "4", true)
 }
 
+func Emphasis(out *termenv.Output, text string) string {
+	return style(out, text, "6", true)
+}
+
 func Muted(out *termenv.Output, text string) string {
 	s := out.Profile.String(text)
 	return s.Faint().String()
