@@ -28,6 +28,11 @@ JSON output:
 ./freeport list --json
 ```
 
+Filter + dedupe:
+```bash
+./freeport list --port 3000 --unique
+```
+
 ### See who is on a port
 ```bash
 ./freeport who 3000

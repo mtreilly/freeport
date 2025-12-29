@@ -55,6 +55,27 @@ func TestRunSetsPort(t *testing.T) {
 	}
 }
 
+func TestListUniqueFiltersDuplicates(t *testing.T) {
+	bin := buildCLI(t)
+
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+	code, out, errOut := runCLI(bin, "list", "--port", itoa(port), "--unique")
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d (out=%q err=%q)", code, out, errOut)
+	}
+
+	lines := nonEmptyLines(out)
+	if len(lines) != 2 {
+		t.Fatalf("expected header + 1 line, got %d lines: %q", len(lines), lines)
+	}
+}
+
 func buildCLI(t *testing.T) string {
 	t.Helper()
 	cwd, err := os.Getwd()
