@@ -81,6 +81,11 @@ JSON output:
 ./freeport check 3000 --json
 ```
 
+Wait for a port to free up:
+```bash
+./freeport check 3000 --wait 2s
+```
+
 ### Run a command with a chosen PORT (best-effort)
 ```bash
 ./freeport run --prefer 3000 --range 3000-3999 -- env | rg '^PORT='

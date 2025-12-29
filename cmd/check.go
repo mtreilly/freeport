@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"freeport/internal/scan"
 	"github.com/spf13/cobra"
 )
+
+var checkWait time.Duration
 
 var checkCmd = &cobra.Command{
 	Use:   "check <port>",
@@ -21,7 +24,7 @@ var checkCmd = &cobra.Command{
 			os.Exit(2)
 		}
 
-		inUse, err := scan.HasTCPListenerOnPort(context.Background(), port)
+		inUse, err := waitForPortFree(port, checkWait)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "check failed: %v\n", err)
 			os.Exit(2)
@@ -48,3 +51,27 @@ var checkCmd = &cobra.Command{
 	},
 }
 
+func init() {
+	checkCmd.Flags().DurationVar(&checkWait, "wait", 0, "Wait for port to become free (e.g., 2s)")
+}
+
+func waitForPortFree(port int, wait time.Duration) (bool, error) {
+	if wait <= 0 {
+		return scan.HasTCPListenerOnPort(context.Background(), port)
+	}
+
+	deadline := time.Now().Add(wait)
+	for {
+		inUse, err := scan.HasTCPListenerOnPort(context.Background(), port)
+		if err != nil {
+			return false, err
+		}
+		if !inUse {
+			return false, nil
+		}
+		if time.Now().After(deadline) {
+			return true, nil
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+}
