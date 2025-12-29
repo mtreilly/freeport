@@ -20,6 +20,7 @@ var (
 	killSignal  string
 	killTimeout time.Duration
 	killJSON    bool
+	killDryRun  bool
 )
 
 var killCmd = &cobra.Command{
@@ -72,6 +73,20 @@ var killCmd = &cobra.Command{
 			if !killForce && current != nil && t.User != "" && t.User != current.Username {
 				return fmt.Errorf("refusing to kill pid %d owned by %q (use --force to override)", t.PID, t.User)
 			}
+		}
+
+		if killDryRun {
+			if jsonOutput || killJSON {
+				return scan.WriteJSON(os.Stdout, map[string]any{
+					"port":   port,
+					"status": "dry-run",
+					"targets": targets,
+				})
+			}
+			for _, t := range targets {
+				fmt.Fprintf(os.Stdout, "would signal pid %d (%s)\n", t.PID, t.Command)
+			}
+			return nil
 		}
 
 		signaled := 0
@@ -131,6 +146,7 @@ func init() {
 	killCmd.Flags().StringVar(&killSignal, "signal", "TERM", "Signal to send (TERM, INT, KILL)")
 	killCmd.Flags().DurationVar(&killTimeout, "timeout", 2*time.Second, "Wait before escalating to SIGKILL (0 to disable)")
 	killCmd.Flags().BoolVar(&killJSON, "json", false, "Output JSON (alias for --json)")
+	killCmd.Flags().BoolVar(&killDryRun, "dry-run", false, "Show targets without sending signals")
 }
 
 func parseSignal(s string) (syscall.Signal, error) {
