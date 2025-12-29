@@ -44,29 +44,33 @@ var whoCmd = &cobra.Command{
 			return nil
 		}
 
+		suffix := "listeners"
+		if len(matches) == 1 {
+			suffix = "listener"
+		}
+		fmt.Fprintf(ui.Stdout(), "%s %s\n", ui.Header(ui.Stdout(), fmt.Sprintf("port %d", port)), ui.Muted(ui.Stdout(), fmt.Sprintf("(%d %s)", len(matches), suffix)))
 		for _, m := range matches {
-			line := fmt.Sprintf("port %d: pid=%d", port, m.PID)
+			fmt.Fprintf(ui.Stdout(), "  %s %d\n", ui.Info(ui.Stdout(), "pid:"), m.PID)
 			if m.PPID > 0 {
-				line += fmt.Sprintf(" ppid=%d", m.PPID)
+				fmt.Fprintf(ui.Stdout(), "  %s %d\n", ui.Info(ui.Stdout(), "ppid:"), m.PPID)
 			}
 			if m.User != "" {
-				line += fmt.Sprintf(" user=%s", m.User)
+				fmt.Fprintf(ui.Stdout(), "  %s %s\n", ui.Info(ui.Stdout(), "user:"), m.User)
 			}
 			if m.Command != "" {
-				line += fmt.Sprintf(" cmd=%s", m.Command)
+				fmt.Fprintf(ui.Stdout(), "  %s %s\n", ui.Info(ui.Stdout(), "cmd:"), ui.Emphasis(ui.Stdout(), m.Command))
 			}
-			if m.Address != "" {
-				line += fmt.Sprintf(" addr=%s", m.Address)
-			}
-			fmt.Fprintf(ui.Stdout(), "%s\n", line)
 			if m.CommandLine != "" {
-				fmt.Fprintf(ui.Stdout(), "  args=%q\n", m.CommandLine)
+				fmt.Fprintf(ui.Stdout(), "  %s %q\n", ui.Info(ui.Stdout(), "args:"), m.CommandLine)
 			}
 			if m.Executable != "" {
-				fmt.Fprintf(ui.Stdout(), "  exe=%q\n", m.Executable)
+				fmt.Fprintf(ui.Stdout(), "  %s %q\n", ui.Info(ui.Stdout(), "exe:"), m.Executable)
 			}
 			if m.CWD != "" {
-				fmt.Fprintf(ui.Stdout(), "  cwd=%q\n", m.CWD)
+				fmt.Fprintf(ui.Stdout(), "  %s %q\n", ui.Info(ui.Stdout(), "cwd:"), m.CWD)
+			}
+			if m.Address != "" {
+				fmt.Fprintf(ui.Stdout(), "  %s %s\n", ui.Info(ui.Stdout(), "addr:"), m.Address)
 			}
 		}
 		return nil
