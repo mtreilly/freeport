@@ -60,6 +60,11 @@ JSON output:
 ./freeport pick --prefer 3000 --range 3000-3999 --json
 ```
 
+Let the OS pick (ephemeral):
+```bash
+./freeport pick --prefer 0
+```
+
 ### Check a port (automation-friendly exit codes)
 ```bash
 ./freeport check 3000

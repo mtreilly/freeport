@@ -33,6 +33,13 @@ func ParseRange(s string) (Range, error) {
 
 func PickTCPPort(prefer []int, r Range) (int, error) {
 	for _, p := range prefer {
+		if p == 0 {
+			ephemeral, ok := pickEphemeral()
+			if ok {
+				return ephemeral, nil
+			}
+			continue
+		}
 		if p < 1 || p > 65535 {
 			continue
 		}
@@ -57,3 +64,15 @@ func probeTCP(port int) bool {
 	return true
 }
 
+func pickEphemeral() (int, bool) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, false
+	}
+	defer ln.Close()
+	addr, ok := ln.Addr().(*net.TCPAddr)
+	if !ok || addr.Port == 0 {
+		return 0, false
+	}
+	return addr.Port, true
+}
