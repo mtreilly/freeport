@@ -38,6 +38,6 @@ var pickCmd = &cobra.Command{
 }
 
 func init() {
-	pickCmd.Flags().IntSliceVar(&pickPrefer, "prefer", []int{3000}, "Preferred ports (tries in order)")
+	pickCmd.Flags().IntSliceVar(&pickPrefer, "prefer", []int{3000}, "Preferred ports (tries in order; 0 means OS-assigned)")
 	pickCmd.Flags().StringVar(&pickRange, "range", "3000-3999", "Port range to search (inclusive)")
 }
