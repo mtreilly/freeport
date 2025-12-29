@@ -53,6 +53,7 @@ Options:
 ./freeport kill 3000 --signal INT --timeout 1s
 ./freeport kill 3000 --force
 ./freeport kill 3000 --json
+./freeport kill 3000 --dry-run
 ```
 
 ### Pick a free port

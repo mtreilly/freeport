@@ -76,6 +76,25 @@ func TestListUniqueFiltersDuplicates(t *testing.T) {
 	}
 }
 
+func TestKillDryRunDoesNotError(t *testing.T) {
+	bin := buildCLI(t)
+
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	defer ln.Close()
+
+	port := ln.Addr().(*net.TCPAddr).Port
+	code, out, errOut := runCLI(bin, "kill", itoa(port), "--dry-run")
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d (out=%q err=%q)", code, out, errOut)
+	}
+	if !strings.Contains(out, "would signal") {
+		t.Fatalf("expected dry-run output, got %q", out)
+	}
+}
+
 func buildCLI(t *testing.T) string {
 	t.Helper()
 	cwd, err := os.Getwd()
