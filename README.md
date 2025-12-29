@@ -96,3 +96,21 @@ Wait for a port to free up:
 - `run` is best-effort and cannot prevent races with non-Freeport processes.
 - On Linux, `ss` may omit PID/command without sufficient permissions, so
   those fields can be blank.
+
+## FAQ
+### Why no daemon?
+The MVP avoids background services and registries to keep behavior simple
+and correct. All data comes from the OS at query time.
+
+### Why not “clean up” TIME_WAIT?
+TIME_WAIT is a closed connection state, not a LISTENing socket. If a port
+is blocked, there is almost always a live listener (or a bind mismatch).
+
+### Does `run` guarantee exclusivity?
+No. `run` uses a lockfile and bind probes to avoid collisions between
+Freeport invocations, but non-Freeport processes can still race.
+
+### What are `check` exit codes?
+- 0: port is free
+- 1: port has a TCP listener
+- 2: error (invalid port or probe failure)
