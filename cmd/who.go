@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"freeport/internal/scan"
+	"freeport/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -37,12 +38,12 @@ var whoCmd = &cobra.Command{
 		}
 
 		if len(matches) == 0 {
-			fmt.Fprintf(os.Stdout, "port %d: free (no TCP listeners found)\n", port)
+			fmt.Fprintf(ui.Stdout(), "port %d: %s (no TCP listeners found)\n", port, ui.Success(ui.Stdout(), "free"))
 			return nil
 		}
 
 		for _, m := range matches {
-			fmt.Fprintf(os.Stdout, "port %d: pid=%d user=%s cmd=%s addr=%s\n", port, m.PID, m.User, m.Command, m.Address)
+			fmt.Fprintf(ui.Stdout(), "port %d: pid=%d user=%s cmd=%s addr=%s\n", port, m.PID, m.User, m.Command, m.Address)
 		}
 		return nil
 	},

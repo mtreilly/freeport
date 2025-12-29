@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"freeport/internal/scan"
+	"freeport/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -54,9 +55,9 @@ var listCmd = &cobra.Command{
 			return scan.WriteJSON(os.Stdout, listeners)
 		}
 
-		fmt.Fprintf(os.Stdout, "PORT\tPID\tUSER\tCOMMAND\tADDR\n")
+		fmt.Fprintf(ui.Stdout(), "%s\n", ui.Header(ui.Stdout(), "PORT\tPID\tUSER\tCOMMAND\tADDR"))
 		for _, l := range listeners {
-			fmt.Fprintf(os.Stdout, "%d\t%d\t%s\t%s\t%s\n", l.Port, l.PID, l.User, l.Command, l.Address)
+			fmt.Fprintf(ui.Stdout(), "%d\t%d\t%s\t%s\t%s\n", l.Port, l.PID, l.User, l.Command, l.Address)
 		}
 		return nil
 	},
