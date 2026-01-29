@@ -13,18 +13,48 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
+	Use:   "list [filter]",
 	Short: "List listening TCP ports (best-effort)",
+	Long: `List listening TCP ports (best-effort).
+
+Optional filter argument matches against command name, executable path,
+and command line (case-insensitive).
+
+Examples:
+  freeport list           # all ports
+  freeport list node      # ports used by node processes
+  freeport list python    # ports used by python processes
+  freeport list redis     # ports used by redis`,
+	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		listeners, err := scan.ListTCPListeners(context.Background())
 		if err != nil {
 			return err
 		}
 
+		var filter string
+		if len(args) > 0 {
+			filter = strings.ToLower(args[0])
+		}
+
 		if listPort > 0 {
 			filtered := listeners[:0]
 			for _, l := range listeners {
 				if l.Port == listPort {
+					filtered = append(filtered, l)
+				}
+			}
+			listeners = filtered
+		}
+
+		if filter != "" {
+			// Enrich for better filtering if not already verbose
+			if !listVerbose {
+				scan.EnrichListenersWithProcessInfo(context.Background(), listeners)
+			}
+			filtered := listeners[:0]
+			for _, l := range listeners {
+				if matchesFilter(l, filter) {
 					filtered = append(filtered, l)
 				}
 			}
@@ -109,4 +139,18 @@ func truncatePath(cmdLine string, maxLen int) string {
 		return "..." + exe[len(exe)-maxLen+3:]
 	}
 	return exe
+}
+
+func matchesFilter(l scan.Listener, filter string) bool {
+	// Match against command name, executable, or command line
+	if strings.Contains(strings.ToLower(l.Command), filter) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(l.Executable), filter) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(l.CommandLine), filter) {
+		return true
+	}
+	return false
 }
