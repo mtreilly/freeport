@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"time"
 
-	"freeport/internal/scan"
-	"freeport/internal/ui"
+	"fp/internal/scan"
+	"fp/internal/ui"
 	"github.com/muesli/termenv"
 	"github.com/spf13/cobra"
 )
@@ -18,7 +18,7 @@ var doctorCmd = &cobra.Command{
 	Short: "Check system dependencies and configuration",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		out := ui.Stdout()
-		fmt.Fprintf(out, "%s\n\n", ui.Header(out, "freeport doctor"))
+		fmt.Fprintf(out, "%s\n\n", ui.Header(out, "fp doctor"))
 
 		// System info
 		fmt.Fprintf(out, "%s\n", ui.Info(out, "System"))
@@ -61,7 +61,7 @@ var doctorCmd = &cobra.Command{
 		// Summary
 		fmt.Fprintf(out, "%s\n", ui.Info(out, "Status"))
 		if (hasLsof || hasSS) && err == nil {
-			fmt.Fprintf(out, "  %s freeport is ready to use\n", ui.LabelOK(out))
+			fmt.Fprintf(out, "  %s fp is ready to use\n", ui.LabelOK(out))
 		} else {
 			fmt.Fprintf(out, "  %s Some issues detected (see above)\n", ui.LabelWarn(out))
 		}

@@ -9,27 +9,27 @@ import (
 var completionCmd = &cobra.Command{
 	Use:   "completion [bash|zsh|fish|powershell]",
 	Short: "Generate shell completion script",
-	Long: `Generate shell completion script for freeport.
+	Long: `Generate shell completion script for fp.
 
 To load completions:
 
 Bash:
-  $ source <(freeport completion bash)
+  $ source <(fp completion bash)
   # Or add to ~/.bashrc:
-  # eval "$(freeport completion bash)"
+  # eval "$(fp completion bash)"
 
 Zsh:
-  $ source <(freeport completion zsh)
+  $ source <(fp completion zsh)
   # Or add to ~/.zshrc:
-  # eval "$(freeport completion zsh)"
+  # eval "$(fp completion zsh)"
 
 Fish:
-  $ freeport completion fish | source
+  $ fp completion fish | source
   # Or save to completions dir:
-  # freeport completion fish > ~/.config/fish/completions/freeport.fish
+  # fp completion fish > ~/.config/fish/completions/fp.fish
 
 PowerShell:
-  PS> freeport completion powershell | Out-String | Invoke-Expression
+  PS> fp completion powershell | Out-String | Invoke-Expression
 `,
 	DisableFlagsInUseLine: true,
 	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
