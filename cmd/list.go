@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 
 	"freeport/internal/scan"
 	"freeport/internal/ui"
@@ -60,15 +61,14 @@ var listCmd = &cobra.Command{
 		}
 
 		if listVerbose {
-			fmt.Fprintf(ui.Stdout(), "%s\n", ui.Header(ui.Stdout(), "PORT\tPID\tUSER\tCOMMAND\tFULL COMMAND\tADDR"))
+			fmt.Fprintf(ui.Stdout(), "%s\n", ui.Header(ui.Stdout(), "PORT\tPID\tUSER\tEXE"))
 			for _, l := range listeners {
 				port := ui.Emphasis(ui.Stdout(), fmt.Sprintf("%d", l.Port))
-				command := ui.Emphasis(ui.Stdout(), l.Command)
-				fullCmd := l.CommandLine
-				if fullCmd == "" {
-					fullCmd = "-"
+				exe := truncatePath(l.CommandLine, 60)
+				if exe == "" {
+					exe = l.Command
 				}
-				fmt.Fprintf(ui.Stdout(), "%s\t%d\t%s\t%s\t%s\t%s\n", port, l.PID, l.User, command, fullCmd, l.Address)
+				fmt.Fprintf(ui.Stdout(), "%s\t%d\t%s\t%s\n", port, l.PID, l.User, exe)
 			}
 		} else {
 			fmt.Fprintf(ui.Stdout(), "%s\n", ui.Header(ui.Stdout(), "PORT\tPID\tUSER\tCOMMAND\tADDR"))
@@ -91,5 +91,22 @@ var (
 func init() {
 	listCmd.Flags().IntVar(&listPort, "port", 0, "Filter by port")
 	listCmd.Flags().BoolVar(&listUnique, "unique", false, "Deduplicate by port+PID")
-	listCmd.Flags().BoolVarP(&listVerbose, "verbose", "v", false, "Show full command line")
+	listCmd.Flags().BoolVarP(&listVerbose, "verbose", "v", false, "Show executable path")
+}
+
+func truncatePath(cmdLine string, maxLen int) string {
+	if cmdLine == "" {
+		return ""
+	}
+
+	// Find where arguments likely start (first " -" pattern)
+	exe := cmdLine
+	if idx := strings.Index(cmdLine, " -"); idx > 0 {
+		exe = cmdLine[:idx]
+	}
+
+	if maxLen > 0 && len(exe) > maxLen {
+		return "..." + exe[len(exe)-maxLen+3:]
+	}
+	return exe
 }
