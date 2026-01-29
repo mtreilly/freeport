@@ -1,116 +1,103 @@
-# Freeport
+# fp
 
-Freeport is a small, no-daemon CLI for answering "what is on this port?"
-and freeing a port quickly. It is designed for local dev workflows and
-automation.
+`fp` (freeport) is a small, no-daemon CLI for answering "what is on this port?"
+and freeing a port quickly. Designed for local dev workflows and automation.
 
-## Scope (v0.1)
-- Single binary CLI.
-- No background service or registry.
-- Best-effort wrappers, deterministic output.
+## Install
 
-For the design rationale and port semantics, see `MVP_SCOPE.md`.
-
-## Build
 ```bash
-go build ./...
+./install.sh
+# or
+go install .
+```
+
+## Quick Start
+
+```bash
+fp list              # list all listening ports
+fp list node         # filter by process name
+fp who 3000          # detailed info on port 3000
+fp kill 3000         # kill process on port 3000
+fp doctor            # check system dependencies
 ```
 
 ## Usage
 
 ### List listening TCP ports
 ```bash
-./freeport list
-```
-
-JSON output:
-```bash
-./freeport list --json
-```
-
-Filter + dedupe:
-```bash
-./freeport list --port 3000 --unique
+fp list                      # all ports
+fp list node                 # filter by command name
+fp list --port 3000          # filter by port
+fp list --unique             # dedupe by port+PID
+fp list -v                   # show full executable path
+fp list --json               # JSON output
 ```
 
 ### See who is on a port
 ```bash
-./freeport who 3000
+fp who 3000
+fp who 3000 --json
 ```
 
-JSON output:
+### Kill listeners on a port
 ```bash
-./freeport who 3000 --json
-```
-
-### Kill listeners on a port (safe defaults)
-```bash
-./freeport kill 3000
-```
-
-Options:
-```bash
-./freeport kill 3000 --signal INT --timeout 1s
-./freeport kill 3000 --force
-./freeport kill 3000 --json
-./freeport kill 3000 --dry-run
+fp kill 3000                          # SIGTERM with 2s timeout
+fp kill 3000 --signal INT --timeout 1s
+fp kill 3000 --force                  # override user check
+fp kill 3000 --dry-run                # preview targets
 ```
 
 ### Pick a free port
 ```bash
-./freeport pick --prefer 3000 --range 3000-3999
+fp pick                               # default: prefer 3000
+fp pick --prefer 8080 --range 8000-8999
+fp pick --prefer 0                    # OS-assigned ephemeral
 ```
 
-JSON output:
+### Check a port
 ```bash
-./freeport pick --prefer 3000 --range 3000-3999 --json
+fp check 3000                # exit 0=free, 1=in-use, 2=error
+fp check 3000 --wait 5s      # wait up to 5s for port to free
 ```
 
-Let the OS pick (ephemeral):
+### Run a command with PORT env var
 ```bash
-./freeport pick --prefer 0
+fp run -- node server.js
+fp run --prefer 8080 -- python app.py
+fp run --env API_PORT -- ./myserver
 ```
 
-### Check a port (automation-friendly exit codes)
+### Shell completion
 ```bash
-./freeport check 3000
+# Bash
+eval "$(fp completion bash)"
+
+# Zsh
+eval "$(fp completion zsh)"
+
+# Fish
+fp completion fish | source
 ```
 
-JSON output:
+### System check
 ```bash
-./freeport check 3000 --json
-```
-
-Wait for a port to free up:
-```bash
-./freeport check 3000 --wait 2s
-```
-
-### Run a command with a chosen PORT (best-effort)
-```bash
-./freeport run --prefer 3000 --range 3000-3999 -- env | rg '^PORT='
+fp doctor
 ```
 
 ## Notes
-- `list` and `who` use `lsof` on macOS and `ss` on Linux when available.
-- `run` is best-effort and cannot prevent races with non-Freeport processes.
-- On Linux, `ss` may omit PID/command without sufficient permissions, so
-  those fields can be blank.
+- Uses `lsof` on macOS and `ss` on Linux
+- `run` is best-effort; cannot prevent races with non-fp processes
+- On Linux, `ss` may omit PID/command without root
 
 ## FAQ
-### Why no daemon?
-The MVP avoids background services and registries to keep behavior simple
-and correct. All data comes from the OS at query time.
 
-### Why not “clean up” TIME_WAIT?
-TIME_WAIT is a closed connection state, not a LISTENing socket. If a port
-is blocked, there is almost always a live listener (or a bind mismatch).
+**Why no daemon?**
+All data comes from the OS at query time. No background services needed.
 
-### Does `run` guarantee exclusivity?
-No. `run` uses a lockfile and bind probes to avoid collisions between
-Freeport invocations, but non-Freeport processes can still race.
+**Why not clean up TIME_WAIT?**
+TIME_WAIT is a closed connection, not a listener. If a port is blocked,
+there's almost always a live listener.
 
-### What are `check` exit codes?
-- 0: port is free
-- 1: port has a TCP listener
-- 2: error (invalid port or probe failure)
+**Does `run` guarantee exclusivity?**
+No. It uses lockfiles to avoid collisions between fp invocations, but
+external processes can still race.
