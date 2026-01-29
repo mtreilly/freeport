@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"freeport/internal/scan"
-	"freeport/internal/ui"
+	"fp/internal/scan"
+	"fp/internal/ui"
 	"github.com/spf13/cobra"
 )
 

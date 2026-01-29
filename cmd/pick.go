@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"freeport/internal/ports"
-	"freeport/internal/scan"
+	"fp/internal/ports"
+	"fp/internal/scan"
 	"github.com/spf13/cobra"
 )
 

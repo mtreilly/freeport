@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"freeport/internal/ui"
+	"fp/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +11,7 @@ var jsonOutput bool
 var noColor bool
 
 var rootCmd = &cobra.Command{
-	Use:   "freeport",
+	Use:   "fp",
 	Short: "Local dev port helpers (list/who/kill/pick/run)",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		ui.Configure(noColor)

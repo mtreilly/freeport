@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"freeport/internal/ports"
+	"fp/internal/ports"
 	"golang.org/x/sys/unix"
 )
 
@@ -61,7 +61,7 @@ func lockDir() (string, error) {
 	if err != nil || base == "" {
 		base = os.TempDir()
 	}
-	dir := filepath.Join(base, "freeport", "locks")
+	dir := filepath.Join(base, "fp", "locks")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", err
 	}
@@ -82,7 +82,7 @@ func tryLockPortFile(dir string, port int) (*Handle, error) {
 }
 
 // Duplicate of ports.probeTCP but kept local so PickAndLock can remain race-minimizing:
-// hold lock while probing so concurrent `freeport run` calls don't pick the same port.
+// hold lock while probing so concurrent `fp run` calls don't pick the same port.
 func portsPickProbe(port int) bool {
 	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 	if err != nil {

@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"freeport/internal/scan"
-	"freeport/internal/ui"
+	"fp/internal/scan"
+	"fp/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -21,10 +21,10 @@ Optional filter argument matches against command name, executable path,
 and command line (case-insensitive).
 
 Examples:
-  freeport list           # all ports
-  freeport list node      # ports used by node processes
-  freeport list python    # ports used by python processes
-  freeport list redis     # ports used by redis`,
+  fp list           # all ports
+  fp list node      # ports used by node processes
+  fp list python    # ports used by python processes
+  fp list redis     # ports used by redis`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		listeners, err := scan.ListTCPListeners(context.Background())

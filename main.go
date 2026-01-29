@@ -1,6 +1,6 @@
 package main
 
-import "freeport/cmd"
+import "fp/cmd"
 
 func main() {
 	cmd.Execute()

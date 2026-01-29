@@ -50,7 +50,7 @@ func TestRunSetsPort(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected exit 0 for run, got %d (stderr=%q)", code, errOut)
 	}
-	if !strings.Contains(errOut, "freeport: using port") {
+	if !strings.Contains(errOut, "fp: using port") {
 		t.Fatalf("expected chosen port message in stderr, got %q", errOut)
 	}
 }
@@ -104,7 +104,7 @@ func buildCLI(t *testing.T) string {
 	root := filepath.Dir(cwd)
 
 	tmp := t.TempDir()
-	bin := filepath.Join(tmp, "freeport")
+	bin := filepath.Join(tmp, "fp")
 
 	cmd := exec.Command("go", "build", "-o", bin, ".")
 	cmd.Dir = root
