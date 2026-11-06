@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"os"
+	"os/exec"
+	"syscall"
 
 	"fp/internal/ui"
 	"github.com/spf13/cobra"
@@ -20,7 +23,18 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	cmd, err := rootCmd.ExecuteC()
+	if err != nil {
+		if cmd == checkCmd {
+			os.Exit(2)
+		}
+		var exitErr *exec.ExitError
+		if cmd == runCmd && errors.As(err, &exitErr) {
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() {
+				os.Exit(128 + int(status.Signal()))
+			}
+			os.Exit(exitErr.ExitCode())
+		}
 		os.Exit(1)
 	}
 }
@@ -34,4 +48,5 @@ func init() {
 	rootCmd.AddCommand(pickCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(checkCmd)
+	checkCmd.MarkFlagsMutuallyExclusive("quiet", "json")
 }

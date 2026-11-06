@@ -28,6 +28,16 @@ func EnrichListenersWithProcessInfo(ctx context.Context, listeners []Listener) {
 
 	fillFromPS(ctx, byPID)
 	fillProcPaths(ctx, byPID)
+	for i := range listeners {
+		info := byPID[listeners[i].PID]
+		if info == nil {
+			continue
+		}
+		listeners[i].PPID = info.PPID
+		listeners[i].CommandLine = info.CommandLine
+		listeners[i].Executable = info.Executable
+		listeners[i].CWD = info.CWD
+	}
 }
 
 func fillFromPS(ctx context.Context, byPID map[int]*Listener) {

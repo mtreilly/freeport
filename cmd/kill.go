@@ -20,7 +20,6 @@ var (
 	killForce   bool
 	killSignal  string
 	killTimeout time.Duration
-	killJSON    bool
 	killDryRun  bool
 )
 
@@ -58,7 +57,7 @@ var killCmd = &cobra.Command{
 		}
 
 		if len(targets) == 0 {
-			if jsonOutput || killJSON {
+			if jsonOutput {
 				return scan.WriteJSON(os.Stdout, map[string]any{
 					"port":     port,
 					"status":   "idle",
@@ -77,7 +76,7 @@ var killCmd = &cobra.Command{
 		}
 
 		if killDryRun {
-			if jsonOutput || killJSON {
+			if jsonOutput {
 				return scan.WriteJSON(os.Stdout, map[string]any{
 					"port":    port,
 					"status":  "dry-run",
@@ -92,7 +91,7 @@ var killCmd = &cobra.Command{
 
 		signaled := 0
 		for _, t := range targets {
-			fmt.Fprintf(ui.Stdout(), "%s sending %s to pid %d (%s)\n", ui.LabelInfo(ui.Stdout()), sig.String(), t.PID, t.Command)
+			fmt.Fprintf(ui.Stderr(), "%s sending %s to pid %d (%s)\n", ui.LabelInfo(ui.Stderr()), sig.String(), t.PID, t.Command)
 			if err := syscall.Kill(t.PID, sig); err != nil {
 				if errors.Is(err, syscall.ESRCH) {
 					continue
@@ -111,7 +110,7 @@ var killCmd = &cobra.Command{
 					return err
 				}
 				if !stillListening {
-					if jsonOutput || killJSON {
+					if jsonOutput {
 						return scan.WriteJSON(os.Stdout, map[string]any{
 							"port":     port,
 							"status":   "signaled",
@@ -123,13 +122,13 @@ var killCmd = &cobra.Command{
 				}
 			}
 
-			fmt.Fprintf(ui.Stdout(), "%s port %d still busy after %s; sending SIGKILL\n", ui.LabelWarn(ui.Stdout()), port, killTimeout)
+			fmt.Fprintf(ui.Stderr(), "%s port %d still busy after %s; sending SIGKILL\n", ui.LabelWarn(ui.Stderr()), port, killTimeout)
 			for _, t := range targets {
 				_ = syscall.Kill(t.PID, syscall.SIGKILL)
 			}
 		}
 
-		if jsonOutput || killJSON {
+		if jsonOutput {
 			return scan.WriteJSON(os.Stdout, map[string]any{
 				"port":     port,
 				"status":   "signaled",
@@ -146,7 +145,6 @@ func init() {
 	killCmd.Flags().BoolVar(&killForce, "force", false, "Allow killing processes not owned by your user")
 	killCmd.Flags().StringVar(&killSignal, "signal", "TERM", "Signal to send (TERM, INT, KILL)")
 	killCmd.Flags().DurationVar(&killTimeout, "timeout", 2*time.Second, "Wait before escalating to SIGKILL (0 to disable)")
-	killCmd.Flags().BoolVar(&killJSON, "json", false, "Output JSON (alias for --json)")
 	killCmd.Flags().BoolVar(&killDryRun, "dry-run", false, "Show targets without sending signals")
 }
 

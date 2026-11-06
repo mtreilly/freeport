@@ -12,7 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var checkWait time.Duration
+var (
+	checkWait  time.Duration
+	checkQuiet bool
+)
 
 var checkCmd = &cobra.Command{
 	Use:   "check <port>",
@@ -39,12 +42,16 @@ var checkCmd = &cobra.Command{
 		}
 
 		if jsonOutput {
-			_ = scan.WriteJSON(os.Stdout, map[string]any{
+			err := scan.WriteJSON(os.Stdout, map[string]any{
 				"port":   port,
 				"status": status,
 				"in_use": inUse,
 			})
-		} else {
+			if err != nil {
+				fmt.Fprintf(ui.Stderr(), "%s %v\n", ui.LabelErr(ui.Stderr()), err)
+				os.Exit(2)
+			}
+		} else if !checkQuiet {
 			fmt.Fprintf(ui.Stdout(), "port %d: %s\n", port, statusStyled)
 		}
 
@@ -56,6 +63,7 @@ var checkCmd = &cobra.Command{
 
 func init() {
 	checkCmd.Flags().DurationVar(&checkWait, "wait", 0, "Wait for port to become free (e.g., 2s)")
+	checkCmd.Flags().BoolVarP(&checkQuiet, "quiet", "q", false, "Suppress normal output; use the exit status")
 }
 
 func waitForPortFree(port int, wait time.Duration) (bool, error) {

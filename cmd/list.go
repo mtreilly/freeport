@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -27,6 +28,25 @@ Examples:
   fp list redis     # ports used by redis`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		var cwd string
+		if cmd.Flags().Changed("cwd") {
+			abs, err := filepath.Abs(listCWD)
+			if err != nil {
+				return err
+			}
+			cwd, err = filepath.EvalSymlinks(abs)
+			if err != nil {
+				return err
+			}
+			info, err := os.Stat(cwd)
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() {
+				return fmt.Errorf("not a directory: %q", listCWD)
+			}
+		}
+
 		listeners, err := scan.ListTCPListeners(context.Background())
 		if err != nil {
 			return err
@@ -47,11 +67,29 @@ Examples:
 			listeners = filtered
 		}
 
-		if filter != "" {
-			// Enrich for better filtering if not already verbose
-			if !listVerbose {
-				scan.EnrichListenersWithProcessInfo(context.Background(), listeners)
+		if filter != "" || cwd != "" || listVerbose {
+			scan.EnrichListenersWithProcessInfo(context.Background(), listeners)
+		}
+
+		if cwd != "" {
+			filtered := listeners[:0]
+			for _, l := range listeners {
+				if l.CWD == "" {
+					continue
+				}
+				processCWD, err := filepath.EvalSymlinks(l.CWD)
+				if err != nil {
+					continue
+				}
+				rel, err := filepath.Rel(cwd, processCWD)
+				if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+					filtered = append(filtered, l)
+				}
 			}
+			listeners = filtered
+		}
+
+		if filter != "" {
 			filtered := listeners[:0]
 			for _, l := range listeners {
 				if matchesFilter(l, filter) {
@@ -81,10 +119,6 @@ Examples:
 			}
 			return listeners[i].PID < listeners[j].PID
 		})
-
-		if listVerbose {
-			scan.EnrichListenersWithProcessInfo(context.Background(), listeners)
-		}
 
 		if jsonOutput {
 			return scan.WriteJSON(os.Stdout, listeners)
@@ -116,10 +150,13 @@ var (
 	listPort    int
 	listUnique  bool
 	listVerbose bool
+	listCWD     string
 )
 
 func init() {
 	listCmd.Flags().IntVar(&listPort, "port", 0, "Filter by port")
+	listCmd.Flags().StringVar(&listCWD, "cwd", "", "Filter by process working directory (including subdirectories)")
+	listCmd.MarkFlagDirname("cwd")
 	listCmd.Flags().BoolVar(&listUnique, "unique", false, "Deduplicate by port+PID")
 	listCmd.Flags().BoolVarP(&listVerbose, "verbose", "v", false, "Show executable path")
 }

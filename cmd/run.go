@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -51,7 +52,14 @@ var runCmd = &cobra.Command{
 		child.Stderr = os.Stderr
 		child.Env = append(os.Environ(), fmt.Sprintf("%s=%d", runEnvVar, selectedPort))
 
-		return child.Run()
+		err = child.Run()
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			// The child owns its diagnostics; don't add Cobra's error and usage text.
+			cmd.SilenceErrors = true
+			cmd.SilenceUsage = true
+		}
+		return err
 	},
 }
 

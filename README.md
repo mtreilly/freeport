@@ -28,10 +28,15 @@ fp doctor            # check system dependencies
 fp list                      # all ports
 fp list node                 # filter by command name
 fp list --port 3000          # filter by port
+fp list --cwd .              # listeners in this project and subdirectories
 fp list --unique             # dedupe by port+PID
 fp list -v                   # show full executable path
 fp list --json               # JSON output
 ```
+
+`--cwd` resolves symlinks and matches process working directories, not executable
+locations. Listeners whose working directory cannot be read are excluded.
+It can be combined with the process-name and port filters.
 
 ### See who is on a port
 ```bash
@@ -45,6 +50,7 @@ fp kill 3000                          # SIGTERM with 2s timeout
 fp kill 3000 --signal INT --timeout 1s
 fp kill 3000 --force                  # override user check
 fp kill 3000 --dry-run                # preview targets
+fp kill 3000 --json                   # JSON result on stdout; progress on stderr
 ```
 
 ### Pick a free port
@@ -58,7 +64,10 @@ fp pick --prefer 0                    # OS-assigned ephemeral
 ```bash
 fp check 3000                # exit 0=free, 1=in-use, 2=error
 fp check 3000 --wait 5s      # wait up to 5s for port to free
+fp check 3000 -q             # no normal output; errors still go to stderr
 ```
+
+`--quiet` (`-q`) and `--json` are mutually exclusive.
 
 ### Run a command with PORT env var
 ```bash
@@ -66,6 +75,10 @@ fp run -- node server.js
 fp run --prefer 8080 -- python app.py
 fp run --env API_PORT -- ./myserver
 ```
+
+`run` preserves the child command's exit code. If the child is terminated by a
+signal, it exits with 128 + the signal number (for example, 143 for SIGTERM).
+Child output is passed through; the chosen-port message goes to stderr.
 
 ### Shell completion
 ```bash
@@ -78,6 +91,10 @@ eval "$(fp completion zsh)"
 # Fish
 fp completion fish | source
 ```
+
+With completion loaded, `fp who <Tab>` and `fp kill <Tab>` suggest currently
+listening TCP ports with process names and PIDs when available. Suggestions
+are queried on demand, deduplicated, and filtered by any port prefix you type.
 
 ### System check
 ```bash
